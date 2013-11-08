@@ -1,0 +1,23 @@
+{% extends "layout1.html" %}
+{% block content %}
+
+<h2>Post Here</h2>
+    <form action="{{ url_for('add_entry') }}" method=post>
+      <dl>
+        <dt>Title:
+        <dd><input type=text size=100 name=title>
+        <dt>Text:
+        <dd><textarea name=text rows=10 cols=100></textarea>
+        <dd><input type=submit value=Post>
+      </dl>
+    </form>
+	</br><u><font size=5 color=black>Recent posts</font></u>
+  <ul class=sale>
+
+  {% for entry in posts %}
+    <font size=5 color=red>{{ entry.title }}</font></br></br>
+    {{ entry.text}}</br>
+____________________________________________________________________________________________</br></br></br>
+  {% endfor %}
+  </ul>
+{% endblock %}

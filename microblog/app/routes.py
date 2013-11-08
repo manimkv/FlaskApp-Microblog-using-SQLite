@@ -1,0 +1,87 @@
+from flask import *
+from functools import wraps
+from flask import Flask, render_template, request
+from forms import ContactForm  
+import sqlite3 
+
+DATABASE = 'blog.db'
+app = Flask(__name__)
+app.config.from_object(__name__)
+app.secret_key = 'bozz'  
+
+def connect_db():
+	return sqlite3.connect(app.config['DATABASE'])
+
+@app.route('/')
+def home():
+  return render_template('home.html')
+  
+@app.route('/about')
+def about():
+  return render_template('about.html')
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+  form = ContactForm() 
+  if request.method == 'POST':
+    return 'Mail send.'
+  elif request.method == 'GET':
+    return render_template('contact.html', form=form)  
+
+
+def login_required(test):
+  @wraps(test)
+  def wrap(*args, **kwargs):
+    if 'logged_in' in session:
+      return test(*args, **kwargs)
+    else:
+      flash('You need to login first.')
+      return redirect(url_for('log'))
+  return wrap
+
+
+@app.route('/logout')
+def logout():
+  session.pop('logged_in', None)
+  flash('You were logged out')
+  return redirect (url_for('log'))
+
+@app.route('/hello')
+@login_required
+def hello():
+  g.db=connect_db()
+  return render_template('hello.html')
+
+@app.route('/log', methods=['GET', 'POST'])
+def log():
+  error = None
+  if request.method == 'POST':
+    if request.form['username'] != 'mani' or request.form['password'] != '123':
+      error = 'Invalid Entry. Please try again'
+    else:
+      session['logged_in'] = True
+      return redirect(url_for('hello'))
+  return render_template('log.html', error=error)
+
+
+
+@app.route('/post',methods=['POST'])
+def add_entry():
+	g.db=connect_db()
+	g.db.execute('insert into posts (title, text) values (?, ?)',[request.form['title'], request.form['text']])
+	g.db.commit()
+	g.db.close()
+	return redirect(url_for('show_entries'))
+
+
+@app.route('/post')
+def show_entries():
+	g.db=connect_db()
+	cur = g.db.execute('select title, text from posts order by id desc')
+	posts = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
+	g.db.close()
+	return render_template('post.html',posts=posts)
+
+if __name__ == '__main__':
+  app.run(debug=True)
+

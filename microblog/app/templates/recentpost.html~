@@ -1,0 +1,9 @@
+{% extends "layout1.html" %}
+{% block content %}
+  {% for entry in posts %}
+    <font size=5 color=red>{{ entry.title }}</font></br></br>
+    {{ entry.text}}</br>
+____________________________________________________________________________________________</br></br></br>
+  {% endfor %}
+  </ul>
+{% endblock %}
